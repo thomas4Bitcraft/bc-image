@@ -1,10 +1,10 @@
 import defu from "defu";
-import { hasProtocol, parseURL, joinURL, withLeadingSlash } from "ufo";
+import { hasProtocol, joinURL, withLeadingSlash } from "ufo";
 import { imageMeta } from "./utils/meta";
 import { parseSize } from "./utils";
 import { useStaticImageMap } from "./utils/static-map";
 export function createImage(globalOptions, nuxtContext) {
-  const staticImageManifest = process.client ? useStaticImageMap(nuxtContext) : {};
+  const staticImageManifest = process.client && process.static ? useStaticImageMap(nuxtContext) : {};
   const ctx = {
     options: globalOptions,
     nuxtContext
@@ -23,29 +23,33 @@ export function createImage(globalOptions, nuxtContext) {
     }).url;
   };
   function handleStaticImage(image, input) {
-    if (process.client && "fetchPayload" in window.$nuxt) {
-      const mappedURL = staticImageManifest[image.url];
-      image.url = mappedURL || input;
-      return image;
-    }
-    if (process.server) {
-      const { ssrContext } = ctx.nuxtContext;
-      if (ssrContext) {
-        const ssrState = ssrContext.nuxt || {};
-        const staticImages = ssrState._img = ssrState._img || {};
-        const ssrData = ssrState.data?.[0];
-        if (ssrData) {
-          ssrData._img = staticImages;
-        }
-        const mapToStatic = ssrContext.image?.mapToStatic;
-        if (typeof mapToStatic === "function") {
-          const mappedURL = mapToStatic(image, input);
-          if (mappedURL) {
-            staticImages[image.url] = mappedURL;
-            image.url = mappedURL;
+    if (process.static) {
+      if (process.client && "fetchPayload" in window.$nuxt) {
+        const mappedURL = staticImageManifest[image.url];
+        image.url = mappedURL || input;
+        return image;
+      }
+      if (process.server) {
+        const { ssrContext } = ctx.nuxtContext;
+        if (ssrContext) {
+          const ssrState = ssrContext.nuxt || {};
+          const staticImages = ssrState._img = ssrState._img || {};
+          const ssrData = ssrState.data?.[0];
+          if (ssrData) {
+            ssrData._img = staticImages;
+          }
+          const mapToStatic = ssrContext.image?.mapToStatic;
+          if (typeof mapToStatic === "function") {
+            const mappedURL = mapToStatic(image, input);
+            if (mappedURL) {
+              staticImages[image.url] = mappedURL;
+              image.url = mappedURL;
+            }
           }
         }
       }
+    } else if (process.env.NODE_ENV === "production") {
+      image.url = input;
     }
   }
   for (const presetName in globalOptions.presets) {
@@ -83,14 +87,6 @@ function resolveImage(ctx, input, options) {
       if (input.startsWith(base)) {
         input = joinURL(ctx.options.alias[base], input.substr(base.length));
       }
-    }
-  }
-  if (provider.validateDomains && hasProtocol(input)) {
-    const inputHost = parseURL(input).host;
-    if (!ctx.options.domains.find((d) => d === inputHost)) {
-      return {
-        url: input
-      };
     }
   }
   const _options = defu(options, preset, defaults);

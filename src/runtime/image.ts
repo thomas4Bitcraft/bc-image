@@ -6,7 +6,7 @@ import { parseSize } from './utils'
 import { useStaticImageMap } from './utils/static-map'
 
 export function createImage (globalOptions: CreateImageOptions, nuxtContext: any) {
-  const staticImageManifest: Record<string, string> = (process.client) ? useStaticImageMap(nuxtContext) : {}
+  const staticImageManifest: Record<string, string> = (process.client && process.static) ? useStaticImageMap(nuxtContext) : {}
 
   const ctx: ImageCTX = {
     options: globalOptions,
@@ -29,30 +29,34 @@ export function createImage (globalOptions: CreateImageOptions, nuxtContext: any
   } as $Img
 
   function handleStaticImage (image: ResolvedImage, input: string) {
-    if (process.client && 'fetchPayload' in window.$nuxt) {
-      const mappedURL = staticImageManifest[image.url]
-      image.url = mappedURL || input
-      return image
-    }
+    if (process.static) {
+      if (process.client && 'fetchPayload' in window.$nuxt) {
+        const mappedURL = staticImageManifest[image.url]
+        image.url = mappedURL || input
+        return image
+      }
 
-    if (process.server) {
-      const { ssrContext } = ctx.nuxtContext
-      if (ssrContext) {
-        const ssrState = ssrContext.nuxt || {}
-        const staticImages = ssrState._img = ssrState._img || {}
-        const ssrData = ssrState.data?.[0]
-        if (ssrData) {
-          ssrData._img = staticImages
-        }
-        const mapToStatic: MapToStatic = ssrContext.image?.mapToStatic
-        if (typeof mapToStatic === 'function') {
-          const mappedURL = mapToStatic(image, input)
-          if (mappedURL) {
-            staticImages[image.url] = mappedURL
-            image.url = mappedURL
+      if (process.server) {
+        const { ssrContext } = ctx.nuxtContext
+        if (ssrContext) {
+          const ssrState = ssrContext.nuxt || {}
+          const staticImages = ssrState._img = ssrState._img || {}
+          const ssrData = ssrState.data?.[0]
+          if (ssrData) {
+            ssrData._img = staticImages
+          }
+          const mapToStatic: MapToStatic = ssrContext.image?.mapToStatic
+          if (typeof mapToStatic === 'function') {
+            const mappedURL = mapToStatic(image, input)
+            if (mappedURL) {
+              staticImages[image.url] = mappedURL
+              image.url = mappedURL
+            }
           }
         }
       }
+    } else if (process.env.NODE_ENV === 'production') {
+      image.url = input
     }
   }
 
@@ -108,15 +112,15 @@ function resolveImage (ctx: ImageCTX, input: string, options: ImageOptions): Res
   }
 
   // Externalize remote images if domain does not match with `domains`
-  if (provider.validateDomains && hasProtocol(input)) {
-    const inputHost = parseURL(input).host
-    // Domains are normalized to hostname in module
-    if (!ctx.options.domains.find(d => d === inputHost)) {
-      return {
-        url: input
-      }
-    }
-  }
+  // if (provider.validateDomains && hasProtocol(input)) {
+  //   const inputHost = parseURL(input).host
+  //   // Domains are normalized to hostname in module
+  //   if (!ctx.options.domains.find(d => d === inputHost)) {
+  //     return {
+  //       url: input
+  //     }
+  //   }
+  // }
 
   const _options: ImageOptions = defu(options, preset, defaults)
   _options.modifiers = { ..._options.modifiers }
