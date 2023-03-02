@@ -35,7 +35,7 @@ const LruCache__default = /*#__PURE__*/_interopDefaultLegacy(LruCache);
 const consola__default = /*#__PURE__*/_interopDefaultLegacy(consola);
 const hasha__default = /*#__PURE__*/_interopDefaultLegacy(hasha);
 
-var name = "@bc/image";
+var name = "@nuxt/image";
 var version = "0.6.2";
 
 consola__default["default"].withScope("@nuxt/image");
