@@ -44,7 +44,7 @@ const imageModule: Module<ModuleOptions> = async function imageModule (moduleOpt
   // Normalize alias to start with leading slash
   options.alias = Object.fromEntries(Object.entries(options.alias).map(e => [withLeadingSlash(e[0]), e[1]]))
 
-  options.provider = detectProvider(options.provider, nuxt.options.target === 'static')
+  options.provider = detectProvider(options.provider, false)
   options[options.provider] = options[options.provider] || {}
 
   const imageOptions: Omit<CreateImageOptions, 'providers'> = pick(options, [

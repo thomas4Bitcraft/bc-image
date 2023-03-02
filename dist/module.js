@@ -52,7 +52,6 @@ function pick(obj, keys) {
 }
 
 const ipxSetup = async (_providerOptions, moduleOptions, nuxt) => {
-  const isStatic = nuxt.options.target === "static";
   const runtimeDir = upath.resolve(__dirname, "runtime");
   const ipxOptions = {
     dir: upath.resolve(nuxt.options.rootDir, moduleOptions.dir),
@@ -73,7 +72,7 @@ const ipxSetup = async (_providerOptions, moduleOptions, nuxt) => {
     });
   }
   const installedInModules = nuxt.options.modules.some((mod) => typeof mod === "string" && mod.includes("@nuxt/image"));
-  if (!isStatic && !hasUserProvidedIPX && !installedInModules && semver.lt(nuxt.constructor.version, "2.16.0")) {
+  if (!hasUserProvidedIPX && !installedInModules && semver.lt(nuxt.constructor.version, "2.16.0")) {
     console.warn("[@nuxt/image] If you would like to use the `ipx` provider at runtime.\nMake sure to follow the instructions at https://image.nuxtjs.org/providers/ipx .");
   }
   if (nuxt.options.dev || hasUserProvidedIPX) {
@@ -194,7 +193,7 @@ const imageModule = async function imageModule2(moduleOptions) {
   const options = defu__default["default"](moduleOptions, nuxt.options.image, defaults);
   options.domains = options.domains.map((domain) => ufo.parseURL(domain, "https://").host).filter(Boolean);
   options.alias = Object.fromEntries(Object.entries(options.alias).map((e) => [ufo.withLeadingSlash(e[0]), e[1]]));
-  options.provider = detectProvider(options.provider, nuxt.options.target === "static");
+  options.provider = detectProvider(options.provider, false);
   options[options.provider] = options[options.provider] || {};
   const imageOptions = pick(options, [
     "screens",

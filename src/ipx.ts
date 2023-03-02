@@ -6,7 +6,7 @@ import { lt } from 'semver'
 import type { ProviderSetup, ImageProviders } from './types'
 
 export const ipxSetup: ProviderSetup = async (_providerOptions, moduleOptions, nuxt) => {
-  const isStatic = nuxt.options.target === 'static'
+  const isStatic = false
   const runtimeDir = resolve(__dirname, 'runtime')
   const ipxOptions: ImageProviders['ipx'] = {
     dir: resolve(nuxt.options.rootDir, moduleOptions.dir),
