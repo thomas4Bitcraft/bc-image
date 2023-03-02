@@ -4,7 +4,7 @@ import { imageMeta } from "./utils/meta";
 import { parseSize } from "./utils";
 import { useStaticImageMap } from "./utils/static-map";
 export function createImage(globalOptions, nuxtContext) {
-  const staticImageManifest = process.client && process.static ? useStaticImageMap(nuxtContext) : {};
+  const staticImageManifest = process.client ? useStaticImageMap(nuxtContext) : {};
   const ctx = {
     options: globalOptions,
     nuxtContext
@@ -23,33 +23,29 @@ export function createImage(globalOptions, nuxtContext) {
     }).url;
   };
   function handleStaticImage(image, input) {
-    if (process.static) {
-      if (process.client && "fetchPayload" in window.$nuxt) {
-        const mappedURL = staticImageManifest[image.url];
-        image.url = mappedURL || input;
-        return image;
-      }
-      if (process.server) {
-        const { ssrContext } = ctx.nuxtContext;
-        if (ssrContext) {
-          const ssrState = ssrContext.nuxt || {};
-          const staticImages = ssrState._img = ssrState._img || {};
-          const ssrData = ssrState.data?.[0];
-          if (ssrData) {
-            ssrData._img = staticImages;
-          }
-          const mapToStatic = ssrContext.image?.mapToStatic;
-          if (typeof mapToStatic === "function") {
-            const mappedURL = mapToStatic(image, input);
-            if (mappedURL) {
-              staticImages[image.url] = mappedURL;
-              image.url = mappedURL;
-            }
+    if (process.client && "fetchPayload" in window.$nuxt) {
+      const mappedURL = staticImageManifest[image.url];
+      image.url = mappedURL || input;
+      return image;
+    }
+    if (process.server) {
+      const { ssrContext } = ctx.nuxtContext;
+      if (ssrContext) {
+        const ssrState = ssrContext.nuxt || {};
+        const staticImages = ssrState._img = ssrState._img || {};
+        const ssrData = ssrState.data?.[0];
+        if (ssrData) {
+          ssrData._img = staticImages;
+        }
+        const mapToStatic = ssrContext.image?.mapToStatic;
+        if (typeof mapToStatic === "function") {
+          const mappedURL = mapToStatic(image, input);
+          if (mappedURL) {
+            staticImages[image.url] = mappedURL;
+            image.url = mappedURL;
           }
         }
       }
-    } else if (process.env.NODE_ENV === "production") {
-      image.url = input;
     }
   }
   for (const presetName in globalOptions.presets) {

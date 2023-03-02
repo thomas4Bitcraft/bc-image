@@ -96,7 +96,7 @@ export default defineComponent({
     }
   },
   created() {
-    if (process.server && process.static) {
+    if (process.server) {
       this.nSources;
     }
   }

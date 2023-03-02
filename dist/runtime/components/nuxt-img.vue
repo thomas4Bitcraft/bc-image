@@ -48,7 +48,7 @@ export default defineComponent({
     }
   },
   created() {
-    if (process.server && process.static) {
+    if (process.server) {
       if (this.sizes) {
         this.nSizes;
       }

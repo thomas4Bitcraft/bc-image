@@ -106,7 +106,7 @@ export default defineComponent({
     }
   },
   created () {
-    if (process.server && process.static) {
+    if (process.server) {
       // Force compute sources into ssrContext
       // eslint-disable-next-line no-unused-expressions
       this.nSources
