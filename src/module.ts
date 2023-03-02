@@ -84,9 +84,9 @@ const imageModule: Module<ModuleOptions> = async function imageModule (moduleOpt
     vue: { transformAssetUrls: { 'nuxt-img': 'src', 'nuxt-picture': 'src', NuxtPicture: 'src', NuxtImg: 'src' } }
   }, nuxt.options.build.loaders || {})
 
-  nuxt.hook('generate:before', () => {
-    setupStaticGeneration(nuxt, options)
-  })
+  // nuxt.hook('generate:before', () => {
+  //   setupStaticGeneration(nuxt, options)
+  // })
 
   const cache = new LruCache()
   nuxt.hook('vue-renderer:context', (ssrContext: any) => {
